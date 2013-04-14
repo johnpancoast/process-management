@@ -23,7 +23,7 @@
 	},
 	"autoload":    {
 		"psr-0": {
-			"Uecode\\ProcessManager": ""
+			"Uecode\\ProcessManager": "src"
 		}
 	}
 }
