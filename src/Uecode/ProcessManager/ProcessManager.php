@@ -25,9 +25,9 @@ class ProcessManager
 	 */
 	protected $config = array();
 
-	public function __construct( Connection $this->connectionection, array $config )
+	public function __construct( Connection $connection, array $config )
 	{
-		$this->connection = $this->connectionection;
+		$this->connection = $this->connection;
 		$this->config = new Config( $config );
 
 		$this->validateConfig();
