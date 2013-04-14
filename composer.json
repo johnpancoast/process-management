@@ -1,0 +1,29 @@
+{
+	"name":	"uecode/process-management",
+	"version":     "1.0.0",
+	"type":	"library",
+	"description": "Uecode Process Manager",
+	"keywords":    ["php", "uecode"],
+	"homepage":    "https://github.com/uecode/process-management",
+	"license":     "MIT",
+	"authors":     [
+		{
+			"name":     "Aaron Scherer",
+			"email":    "aequasi@gmail.com",
+			"role":     "developer",
+			"homepage": "https://github.com/aequasi"
+		}
+	],
+	"support":     {
+		"email": "aaron@undergroundelephant.com"
+	},
+	"require":     {
+		"uecode/uecode": "dev-master",
+		"doctrine/dbal": "2.3.3"
+	},
+	"autoload":    {
+		"psr-0": {
+			"Uecode\\ProcessManager": ""
+		}
+	}
+}
