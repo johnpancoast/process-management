@@ -18,7 +18,7 @@ class ProcessManager
 	/**
 	 * @var Connection
 	 */
-	protected $this->connectionection;
+	protected $connection;
 
 	/**
 	 * @var Config
@@ -49,6 +49,5 @@ class ProcessManager
 
 	public function run()
 	{
-		$this
 	}
 }
