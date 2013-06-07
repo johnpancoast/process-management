@@ -16,22 +16,7 @@ class ProcessManagerBasic
 	 */
 	private $commands = array();
 
-	/**
-	 * @var bool Do we send a SIGKILL signal w/ the kill commands.
-	 *
-	 * @access private
-	 */
-	private $kill9 = false;
-
-	public function __construct(array $commands = array()) {
-	}
-
-	public function writeln($line) {
-		// TODO allow writers
-		echo $line."\n";
-	}
-
-	public function run() {
+	public function run($kill9 = false) {
 		foreach ($this->commands as $c) {
 			$cmd = $c['cmd'];
 			$targetCount = $c['runCount'];
@@ -42,7 +27,7 @@ class ProcessManagerBasic
 				continue;
 			}
 
-			$this->writeln('Handling running processes: '.$targetCount."\n";
+			$this->writeln("Handling running processes: '$cmd'");
 
 			$pids = array();
 			$process = new Process('ps -ef | grep "'.$parseStr.'" | grep -v grep | awk \'{print $2}\'');
@@ -65,11 +50,11 @@ class ProcessManagerBasic
 
 			// kill processes
 			if ($currentCount > $targetCount) {
-				$this->writeln('  Killing '.($currentCount-$targetCount).' processes');
+				$this->writeln('  Killing '.($currentCount-$targetCount).' process(es)');
 				$killed = array();
 				for ($i = 0, $currentCount; $currentCount > $targetCount; --$currentCount, ++$i) {
 					$pid = $pids[$i];
-					$process = new Process("kill ".($this->kill9 ? '-9' : '')." $pid");
+					$process = new Process("kill ".($kill9 ? '-9' : '')." $pid");
 					$process->setTimeout(5);
 					$process->run();
 					if (!$process->isSuccessful()) {
@@ -79,36 +64,66 @@ class ProcessManagerBasic
 					$killed[] = $pid;
 				}
 
-				$this->writeln("  Sent a ".($this->kill9 ? 'SIGKILL' : 'SIGTERM')." signal to the following PIDs:\n  ".implode(', ', $killed));
+				$this->writeln("  Sent a ".($kill9 ? 'SIGKILL' : 'SIGTERM')." signal to the following PIDs:\n  ".implode(', ', $killed));
 
 			// start processes
 			} elseif ($currentCount < $targetCount) {
-				$this->writeln('  Starting '.($targetCount-$currentCount).' processes ('.$cmd);
+				$this->writeln('  Starting '.($targetCount-$currentCount).' process(es) ');
 
 				for (; $currentCount < $targetCount; ++$currentCount) {
 					// use exec() becuase from what I can tell, Process class can't
 					// do a background job.
-					exec(escapeshellcmd("$rootDir/$parseStr").' > /dev/null &');
+					exec(escapeshellcmd("$cmd").' > /dev/null &');
 					usleep(1000);
 				}
 			}
 		}
 	}
 	
-	public function addCommands($cmds) {
+	/**
+	 * Write a line of output
+	 *
+	 * @param string $line
+	 * @access public
+	 */
+	public function writeln($line) {
+		// TODO allow writers
+		echo $line."\n";
+	}
+
+	/**
+	 * Add commands to start or stop based on their counts.
+	 *
+	 * Array should be in the form:
+	 * array(
+	 *   array(
+	 *     <cmd>
+	 *     <runcount>
+	 *     <parse string> [OPTIONAL]
+	 *   )
+	 * )
+	 *
+	 * @access public
+	 * @param array $cmds
+	 */
+	public function addCommands(array $cmds = array()) {
 		if (!empty($cmds)) {
 			foreach ($cmds as $cmd) {
-				if (is_string($cmd)) {
-					$this->addCommand($cmd);
-				} else {
-					$this->addCommand($cmd[0], $cmd[1]);
-				}
+				$this->addCommand($cmd[0], $cmd[1], isset($cmd[2]) ? $cmd[2] : null);
 			}
 		}
 	}
 
+	/**
+	 * Add command to start of stop based on passed run count.
+	 *
+	 * @access public
+	 * @param string $cmd The command to run.
+	 * @param int $runCount The amount this command/process should be running.
+	 * @
+	 */
 	public function addCommand($cmd, $runCount, $parseStr = null) {
-		$this->commmands[$cmd] = array(
+		$this->commands[] = array(
 			'cmd' => $cmd,
 			'parseStr' => $parseStr ?: $cmd,
 			'runCount' => $runCount
