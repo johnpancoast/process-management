@@ -19,7 +19,8 @@
 	},
 	"require":     {
 		"uecode/uecode": "dev-master",
-		"doctrine/dbal": "2.3.3"
+		"doctrine/dbal": "2.3.3",
+		"symfony/process": "dev-master"
 	},
 	"autoload":    {
 		"psr-0": {
