@@ -16,6 +16,11 @@ class ServerProcessManager
 	 */
 	private $commands = array();
 
+	/**
+	 * Adjusts counts of running processes for each command in self::$commands
+	 *
+	 * @access public
+	 */
 	public function run($kill9 = false) {
 		foreach ($this->commands as $c) {
 			$cmd = $c['cmd'];
@@ -29,20 +34,7 @@ class ServerProcessManager
 
 			$this->writeln("Handling running processes: '$cmd'");
 
-			$pids = array();
-			$process = new Process('ps -ef | grep "'.$parseStr.'" | grep -v grep | awk \'{print $2}\'');
-			$process->setTimeout(5);
-			$process->run();
-
-			if (!$process->isSuccessful()) {
-				throw new \Exception($process->getErrorOutput());
-			}
-
-			foreach (explode("\n", $process->getOutput()) as $line) {
-				if (is_numeric($line)) {
-					$pids[] = $line;
-				}
-			}
+			$pids = $this->getProcesses($parseStr);
 
 			$currentCount = count($pids);
 
@@ -128,5 +120,67 @@ class ServerProcessManager
 			'parseStr' => $parseStr ?: $cmd,
 			'runCount' => $runCount
 		);
+	}
+
+	/**
+	 * Given a command string to parse in ps output, return the processes
+	 *
+	 * @access public
+	 * @param string $commandParseStr The string to look for in ps
+	 * @return array
+	 */
+	public function getProcesses($commandParseStr) {
+		$pids = array();
+		$process = new Process('ps -ef | grep "'.$commandParseStr.'" | grep -v grep | awk \'{print $2}\'');
+		$process->setTimeout(5);
+		$process->run();
+
+		if (!$process->isSuccessful()) {
+			throw new \Exception($process->getErrorOutput());
+		}
+
+		foreach (explode("\n", $process->getOutput()) as $line) {
+			if (is_numeric($line)) {
+				$pids[] = $line;
+			}
+		}
+
+		return $pids;
+	}
+
+	/**
+	 * Given a command string to parse in ps output, return the amount it's running
+	 *
+	 * @access public
+	 * @param string $commandParseStr The string to look for in ps
+	 * @return int
+	 */
+	public function getProcessRunCount($commandParseStr) {
+		return count($this->getProcesses($commandParseStr));
+	}
+
+	/**
+	 * Gets run count for each command
+	 *
+	 * @access public
+	 * @return array
+	 */
+	public function getProcessRunCounts() {
+		$ret = array();
+		foreach ($this->commands as $c) {
+			$ret[$c['cmd']] = $this->getProcessRunCount($c['parseStr']);
+		}
+		return $ret;
+	}
+
+	/**
+	 * Prints run count for each command
+	 *
+	 * @access public
+	 */
+	public function printProcessRunCounts() {
+		foreach ($this->getProcessRunCounts() as $cmd => $count) {
+			$this->writeln($count." ".$cmd);
+		}
 	}
 }
