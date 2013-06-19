@@ -7,7 +7,7 @@ namespace Uecode\ProcessManager;
 
 use Symfony\Component\Process\Process;
 
-class ProcessManagerBasic
+class ServerProcessManager
 {
 	/**
 	 * @var array commands we'll run
